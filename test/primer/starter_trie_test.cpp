@@ -41,7 +41,7 @@ std::vector<std::string> GenerateNRandomString(int n) {
   return rand_strs;
 }
 
-TEST(StarterTest, TrieNodeInsertTest) {   //DISABLED_
+TEST(StarterTest, TrieNodeInsertTest) {  // DISABLED_
   // Test Insert
   //  When same key is inserted twice, insert should return nullptr
   // When inserted key and unique_ptr's key does not match, return nullptr
@@ -60,7 +60,7 @@ TEST(StarterTest, TrieNodeInsertTest) {   //DISABLED_
   EXPECT_EQ((*child_node)->GetKeyChar(), 'c');
 }
 
-TEST(StarterTest, TrieNodeRemoveTest) {   // DISABLED_
+TEST(StarterTest, TrieNodeRemoveTest) {  // DISABLED_
   auto t = TrieNode('a');
   // __attribute__((unused))变量不使用也不产生警告信息
   __attribute__((unused)) auto child_node = t.InsertChildNode('b', std::make_unique<TrieNode>('b'));
