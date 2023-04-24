@@ -24,8 +24,8 @@ namespace bustub {
 template <typename K, typename V>
 ExtendibleHashTable<K, V>::ExtendibleHashTable(size_t bucket_size)
     : global_depth_(0), bucket_size_(bucket_size), num_buckets_(1) {
-      dir_.emplace_back(std::make_shared<Bucket>(bucket_size, 0));  //初始化
-    }
+  dir_.emplace_back(std::make_shared<Bucket>(bucket_size, 0));  // 初始化
+}
 
 template <typename K, typename V>
 auto ExtendibleHashTable<K, V>::IndexOf(const K &key) -> size_t {
@@ -70,6 +70,7 @@ auto ExtendibleHashTable<K, V>::GetNumBucketsInternal() const -> int {
 
 template <typename K, typename V>
 auto ExtendibleHashTable<K, V>::Find(const K &key, V &value) -> bool {
+  std::scoped_lock<std::mutex> lock(latch_);
   auto index = IndexOf(key);
   auto target_bucket = dir_[index];
   return target_bucket->Find(key, value);
@@ -77,6 +78,7 @@ auto ExtendibleHashTable<K, V>::Find(const K &key, V &value) -> bool {
 
 template <typename K, typename V>
 auto ExtendibleHashTable<K, V>::Remove(const K &key) -> bool {
+  std::scoped_lock<std::mutex> lock(latch_);
   auto index = IndexOf(key);
   auto target_bucket = dir_[index];
   return target_bucket->Remove(key);
@@ -88,38 +90,41 @@ void ExtendibleHashTable<K, V>::Insert(const K &key, const V &value) {
   size_t index = IndexOf(key);
   auto target_bucket = dir_[index];
   V val;
-  if(target_bucket->Find(key, val)){
+  if (target_bucket->Find(key, val)) {
     target_bucket->Insert(key, value);
     return;
   }
-  while(dir_[index]->IsFull()){
+  while (dir_[index]->IsFull()) {
+    auto target_bucket_2 = dir_[index];
     int local_depth = dir_[index]->GetDepth();
     // 相等：目录翻倍，global_depth++.
-    if(GetGlobalDepthInternal() == local_depth){
+    if (GetGlobalDepthInternal() == local_depth) {
       ++global_depth_;
-      int dir_size = dir_.size();
-      dir_.resize(dir_size << 1);
-      for(int i = 0; i < dir_size; i++){
+      size_t dir_size = dir_.size();
+      dir_.resize(dir_size * 2);
+      for (size_t i = 0; i < dir_size; i++) {
         dir_[i + dir_size] = dir_[i];
       }
     }
     auto local_mask = 1 << local_depth;
     auto bucket_0 = std::make_shared<Bucket>(bucket_size_, local_depth + 1);
     auto bucket_1 = std::make_shared<Bucket>(bucket_size_, local_depth + 1);
-    for(auto it : dir_[index]->GetItems()){
+    for (const auto &it : dir_[index]->GetItems()) {
       auto b_hash_key = std::hash<K>()(it.first);
-      if((b_hash_key & local_mask) == 0)
+      if ((b_hash_key & local_mask) == 0) {
         bucket_0->Insert(it.first, it.second);
-      else
+      } else {
         bucket_1->Insert(it.first, it.second);
+      }
     }
     ++num_buckets_;
-    for(size_t i = 0; i < dir_.size(); i++){
-      if(dir_[i] == target_bucket){
-        if((i & local_mask) == 0)
+    for (size_t i = 0; i < dir_.size(); i++) {
+      if (dir_[i] == target_bucket_2) {
+        if ((i & local_mask) == 0) {
           dir_[i] = bucket_0;
-        else
+        } else {
           dir_[i] = bucket_1;
+        }
       }
     }
     index = IndexOf(key);
@@ -135,8 +140,8 @@ ExtendibleHashTable<K, V>::Bucket::Bucket(size_t array_size, int depth) : size_(
 
 template <typename K, typename V>
 auto ExtendibleHashTable<K, V>::Bucket::Find(const K &key, V &value) -> bool {
-  for(const auto &[k, v] : list_){
-    if(key == k){
+  for (const auto &[k, v] : list_) {
+    if (key == k) {
       value = v;
       return true;
     }
@@ -146,9 +151,9 @@ auto ExtendibleHashTable<K, V>::Bucket::Find(const K &key, V &value) -> bool {
 
 template <typename K, typename V>
 auto ExtendibleHashTable<K, V>::Bucket::Remove(const K &key) -> bool {
-  for(auto it : list_){
-    if(key == it.first){
-      list_.remove(it);
+  for (auto it = list_.begin(); it != list_.end(); ++it) {
+    if (key == (*it).first) {
+      list_.erase(it);
       return true;
     }
   }
@@ -157,13 +162,13 @@ auto ExtendibleHashTable<K, V>::Bucket::Remove(const K &key) -> bool {
 
 template <typename K, typename V>
 auto ExtendibleHashTable<K, V>::Bucket::Insert(const K &key, const V &value) -> bool {
-  for(auto &[k, v] : list_){
-    if(key == k){
+  for (auto &[k, v] : list_) {
+    if (key == k) {
       v = value;
       return true;
     }
   }
-  if(!IsFull()){
+  if (!IsFull()) {
     list_.emplace_back(key, value);
     return true;
   }

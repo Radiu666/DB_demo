@@ -21,7 +21,7 @@ BPLUSTREE_TYPE::BPlusTree(std::string name, BufferPoolManager *buffer_pool_manag
  * Helper function to decide whether current b+tree is empty
  */
 INDEX_TEMPLATE_ARGUMENTS
-auto BPLUSTREE_TYPE::IsEmpty() const -> bool { return true; }
+auto BPLUSTREE_TYPE::IsEmpty() const -> bool { return root_page_id_ == INVALID_PAGE_ID; }
 /*****************************************************************************
  * SEARCH
  *****************************************************************************/
@@ -32,9 +32,46 @@ auto BPLUSTREE_TYPE::IsEmpty() const -> bool { return true; }
  */
 INDEX_TEMPLATE_ARGUMENTS
 auto BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result, Transaction *transaction) -> bool {
-  return false;
+  bool found = false;
+  Page *page = GetLeafPage(key);
+  LeafPage *leaf_page = reinterpret_cast<LeafPage *>(page->GetData());
+  for(int i = 0; i< leaf_page->GetSize(); i++) {
+    if(comparator_(leaf_page->KeyAt(i), key) == 0) {
+      result->emplace_back(leaf_page->ValueAt(i));
+      found = true;
+    }
+  }
+  buffer_pool_manager_->UnpinPage(page->GetPageId(), false);
+  return found;
 }
 
+/*
+ * 找到叶子结点所在页
+ * @return : 页面
+ */
+INDEX_TEMPLATE_ARGUMENTS
+auto BPLUSTREE_TYPE::GetLeafPage(const KeyType &key) -> Page * {
+  page_id_t next_page_id = root_page_id_;
+  while(true) {
+    Page *page = buffer_pool_manager_->FetchPage(next_page_id);
+    auto tree_page = reinterpret_cast<BPlusTreePage *>(page->GetData());
+    if(tree_page->IsLeafPage()) {
+      return page;
+    }
+    InternalPage * internal_page = static_cast<InternalPage *>(tree_page);
+    // 扫描到当前的key值，>target_key的返回前一个Key的value，<=target_key的则返回当前key的value。
+    // 扫描过程中判断大于target_key的位置，如果key全都小于target_key，则取为最后一个key对应的value。
+    next_page_id = internal_page->ValueAt(internal_page->GetSize() - 1);
+    for(int i = 0; i < internal_page->GetSize(); i++) {
+      if(comparator_(internal_page->KeyAt(i), key) > 0) {
+        next_page_id = internal_page->ValueAt(i - 1);
+        break;
+      }
+    }
+    // 前面使用fetch取了page，更改了pin，在不使用后需要降低pin
+    buffer_pool_manager_->UnpinPage(internal_page->GetPageId(), false);
+  }
+}
 /*****************************************************************************
  * INSERTION
  *****************************************************************************/
@@ -47,7 +84,21 @@ auto BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
  */
 INDEX_TEMPLATE_ARGUMENTS
 auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transaction *transaction) -> bool {
-  return false;
+  // 如果为空创建新的leafnode结点
+  if(IsEmpty()) {
+    Page *page = buffer_pool_manager_->NewPage(&root_page_id_);
+    UpdateRootPageId(1);  // 修改root_id时需要调用.
+    LeafPage *leaf_page = reinterpret_cast<LeafPage *>(page->GetData());
+    leaf_page->Init(root_page_id_, INVALID_PAGE_ID, leaf_max_size_);
+    leaf_page->SetKeyValue(0, key, value);
+    buffer_pool_manager_->UnpinPage(root_page_id_, true);
+    return true;
+  }
+
+  // 不为空，首先找到对应的leafnode
+  Page *page = GetLeafPage(key);
+  LeafPage *leaf_page = reinterpret_cast<LeafPage *>(page->GetData());
+  
 }
 
 /*****************************************************************************

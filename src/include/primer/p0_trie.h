@@ -348,9 +348,9 @@ class Trie {
     std::vector<std::unique_ptr<TrieNode> *> rec;
     for (auto c : key) {
       rec.emplace_back(cacu);
-      if (cacu->get()->HasChild(c))
+      if (cacu->get()->HasChild(c)) {
         cacu = cacu->get()->GetChildNode(c);
-      else {
+      } else {
         latch_.WUnlock();
         return false;
       }
@@ -400,9 +400,9 @@ class Trie {
     }
     auto cacu = &root_;
     for (auto c : key) {
-      if (cacu->get()->HasChild(c))
+      if (cacu->get()->HasChild(c)) {
         cacu = cacu->get()->GetChildNode(c);
-      else {
+      } else {
         *success = false;
         latch_.RUnlock();
         return {};
