@@ -32,6 +32,7 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Init(page_id_t page_id, page_id_t parent_id
   SetParentPageId(parent_id);
   SetMaxSize(max_size);
 }
+
 /*
  * Helper method to get/set the key associated with input "index"(a.k.a
  * array offset)
@@ -64,6 +65,7 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Insert(const KeyType &key, const ValueType 
 
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Remove(const KeyType &key, const KeyComparator &comparator) {
+  int size = GetSize();
   int idx = 1;
   while(idx < size && comparator(KeyAt(idx), key) != 0) {
     ++idx;
@@ -87,6 +89,23 @@ INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetValueAt(int index, const ValueType &value) {
   array_[index].second = value;
 }
+
+INDEX_TEMPLATE_ARGUMENTS
+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::TotalToLeft() {
+  for(int i = 0; i < GetSize() - 1; i++) {
+    array_[i] = array_[i + 1];
+  }
+  DecreaseSize(1);
+}
+
+INDEX_TEMPLATE_ARGUMENTS
+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::TotalToRight() {
+  for(int i = GetSize(); i > 0; i--) {
+    array_[i] = array_[i - 1];
+  }
+  IncreaseSize(1);
+}
+
 /*
  * Helper method to get the value associated with input "index"(a.k.a array
  * offset)
@@ -97,9 +116,9 @@ auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt(int index) const -> ValueType {
  }
 
 INDEX_TEMPLATE_ARGUMENTS
-int B_PLUS_TREE_INTERNAL_PAGE_TYPE::FindValueIndex(const ValueType &value, const KeyComparator &comparator) {
+int B_PLUS_TREE_INTERNAL_PAGE_TYPE::FindValueIndex(const ValueType &value) {
   for(int i = 0; i < GetSize(); i++) {
-    if (comparator(ValueAt(i), value) == 0) {
+    if(array_[i].second == value) {
       return i;
     }
   }

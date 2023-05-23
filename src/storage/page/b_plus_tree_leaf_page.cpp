@@ -39,6 +39,10 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::Init(page_id_t page_id, page_id_t parent_id, in
 /**
  * Helper methods to set/get next page id
  */
+
+INDEX_TEMPLATE_ARGUMENTS
+auto B_PLUS_TREE_LEAF_PAGE_TYPE::GetItem(int index) -> const MappingType & { return array_[index]; }
+
 INDEX_TEMPLATE_ARGUMENTS
 auto B_PLUS_TREE_LEAF_PAGE_TYPE::GetNextPageId() const -> page_id_t { return next_page_id_; }
 
@@ -66,7 +70,6 @@ auto B_PLUS_TREE_LEAF_PAGE_TYPE::ValueAt(int index) const -> ValueType {
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_LEAF_PAGE_TYPE::SetKeyValue(int index, const KeyType &key, const ValueType &value) {
   *(array_ + index) = {key, value};
-  IncreaseSize(1);
 }
 
 INDEX_TEMPLATE_ARGUMENTS
@@ -83,11 +86,13 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &val
   for (int i = size; i > idx; i--) {
     array_[i] = array_[i - 1];
   }
+  IncreaseSize(1);
   SetKeyValue(idx, key, value);
 }
 
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_LEAF_PAGE_TYPE::Remove(const KeyType &key, const KeyComparator &comparator) {
+  int size = GetSize();
   int idx = 0;
   while(idx < size && comparator(KeyAt(idx), key) != 0) {
     ++idx;
@@ -103,9 +108,26 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::Remove(const KeyType &key, const KeyComparator 
 }
 
 INDEX_TEMPLATE_ARGUMENTS
+void B_PLUS_TREE_LEAF_PAGE_TYPE::TotalToLeft() {
+  for(int i = 0; i < GetSize() - 1; i++) {
+    array_[i] = array_[i + 1];
+  }
+  DecreaseSize(1);
+}
+
+INDEX_TEMPLATE_ARGUMENTS
+void B_PLUS_TREE_LEAF_PAGE_TYPE::TotalToRight() {
+  for(int i = GetSize(); i > 0; i--) {
+    array_[i] = array_[i - 1];
+  }
+  IncreaseSize(1);
+}
+
+INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveHalf(B_PLUS_TREE_LEAF_PAGE_TYPE *new_page, int idx) {
   int j = 0;
   for(int i = idx; i < GetSize(); i++) {
+    new_page->IncreaseSize(1);
     new_page->SetKeyValue(j++, KeyAt(i), ValueAt(i));
   }
   SetSize(GetSize() - j);
@@ -115,6 +137,7 @@ INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_LEAF_PAGE_TYPE::MoveAll(B_PLUS_TREE_LEAF_PAGE_TYPE *new_page, int idx) {
   int j = idx;
   for(int i = 0; i < GetSize(); i++) {
+    new_page->IncreaseSize(1);
     new_page->SetKeyValue(j++, KeyAt(i), ValueAt(i));
   }
   SetSize(0);

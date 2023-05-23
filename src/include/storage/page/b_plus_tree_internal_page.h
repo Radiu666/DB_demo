@@ -43,8 +43,10 @@ class BPlusTreeInternalPage : public BPlusTreePage {
   void Remove(const KeyType &key, const KeyComparator &comparator);
   void SetKeyAt(int index, const KeyType &key);
   void SetValueAt(int index, const ValueType &value);
+  void TotalToLeft();
+  void TotalToRight();
   auto ValueAt(int index) const -> ValueType;
-  int FindValueIndex(const ValueType &value, const KeyComparator &comparator);
+  int FindValueIndex(const ValueType &value);
   void MoveAll(BPlusTreeInternalPage *new_page, int idx);
 
  private:
