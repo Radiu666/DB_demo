@@ -53,7 +53,7 @@ class BPlusTreeLeafPage : public BPlusTreePage {
   auto ValueAt(int index) const -> ValueType;
   void SetKeyValue(int index, const KeyType &key, const ValueType &value);
   void Insert(const KeyType &key, const ValueType &value, const KeyComparator &comparator);
-  void Remove(const KeyType &key, const KeyComparator &comparator);
+  auto Remove(const KeyType &key, const KeyComparator &comparator) -> bool;
   void TotalToLeft();
   void TotalToRight();
   void MoveHalf(B_PLUS_TREE_LEAF_PAGE_TYPE *new_page, int idx);

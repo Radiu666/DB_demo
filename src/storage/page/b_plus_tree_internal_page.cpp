@@ -64,20 +64,22 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Insert(const KeyType &key, const ValueType 
 }
 
 INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Remove(const KeyType &key, const KeyComparator &comparator) {
+auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::Remove(const KeyType &key, const KeyComparator &comparator) -> bool {
   int size = GetSize();
   int idx = 1;
   while(idx < size && comparator(KeyAt(idx), key) != 0) {
     ++idx;
   }
   if(comparator(KeyAt(idx), key) != 0) {
-    throw std::range_error("Can not find the key!");
+//    throw std::range_error("Can not find the key!");
+    return false;
   }
   while(idx < size - 1) {
     array_[idx] = array_[idx + 1];
     ++idx;
   }
   DecreaseSize(1);
+  return true;
 }
 
 INDEX_TEMPLATE_ARGUMENTS

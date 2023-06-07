@@ -14,6 +14,7 @@
 #include "common/exception.h"
 #include "common/rid.h"
 #include "storage/page/b_plus_tree_leaf_page.h"
+#include "common/logger.h"
 
 namespace bustub {
 
@@ -83,6 +84,9 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &val
   while(idx < size && comparator(KeyAt(idx), key) < 0) {
     ++idx;
   }
+  if (comparator(KeyAt(idx), key) == 0) {
+    return ;
+  }
   for (int i = size; i > idx; i--) {
     array_[i] = array_[i - 1];
   }
@@ -91,20 +95,23 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &val
 }
 
 INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_LEAF_PAGE_TYPE::Remove(const KeyType &key, const KeyComparator &comparator) {
+auto B_PLUS_TREE_LEAF_PAGE_TYPE::Remove(const KeyType &key, const KeyComparator &comparator) -> bool {
   int size = GetSize();
   int idx = 0;
   while(idx < size && comparator(KeyAt(idx), key) != 0) {
     ++idx;
   }
-  if(comparator(KeyAt(idx), key) != 0) {
-    throw std::range_error("Can not find the key!");
+  if(idx >= size || comparator(KeyAt(idx), key) != 0) {
+//    throw std::range_error("Can not find the key!");
+    return false;
   }
+//  LOG_DEBUG("Key: %lld 's----index is %d----size is %d", key.ToString(), idx, size);
   while(idx < size - 1) {
     array_[idx] = array_[idx + 1];
     ++idx;
   }
   DecreaseSize(1);
+  return true;
 }
 
 INDEX_TEMPLATE_ARGUMENTS

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(CMAKE_C_COMPILER "/usr/bin/clang-12")
-set(CAMKE_CXX_COMPILER "/usr/bin/clang++-12")
+set(CMAKE_C_COMPILER "/usr/bin/clang")
+set(CAMKE_CXX_COMPILER "/usr/bin/clang++")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)   # For clang-tidy.
 set(BUILD_SHARED_LIBS OFF)              # We expect external libraries to be linked statically.

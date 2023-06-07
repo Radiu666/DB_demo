@@ -53,21 +53,23 @@ class BPlusTree {
 
   // Remove a key and its value from this B+ tree.
   void Remove(const KeyType &key, Transaction *transaction = nullptr);
-  void Delete_entry(BPlusTreePage *page, const KeyType &key, Transaction *transaction = nullptr);
-  void GetPeerNode(BPlusTreePage *page, page_id_t *l_peer_id, page_id_t *r_peer_id);
-  void MergePage(BPlusTreePage *left, BPlusTreePage *right, InternalPage *parent);
-  void ReDistribution(BPlusTreePage *left, BPlusTreePage *right, InternalPage *parent, bool is_left);
+  void DeleteEntry(BPlusTreePage *page, const KeyType &key, Transaction *transaction = nullptr);
+  void GetPeerNode(BPlusTreePage *page, page_id_t *l_peer_id, page_id_t *r_peer_id, Transaction *transaction = nullptr);
+  void MergePage(BPlusTreePage *left, BPlusTreePage *right, InternalPage *parent, Transaction *transaction = nullptr);
+  void ReDistribution(BPlusTreePage *left, BPlusTreePage *right, InternalPage *parent, bool is_left, Transaction *transaction = nullptr);
 
   // return the value associated with a given key
   auto GetValue(const KeyType &key, std::vector<ValueType> *result, Transaction *transaction = nullptr) -> bool;
-  auto GetLeafPage(const KeyType &key) -> Page *;
+  auto GetLeafPage(const KeyType &key, Operation op, bool first = true, Transaction *transaction = nullptr) -> Page *;
+  auto IsPageSafe(BPlusTreePage *page, Operation op) -> bool;
+  void ReleaseWLatches(Transaction *transaction = nullptr);
 
   // return the page id of the root node
   auto GetRootPageId() -> page_id_t;
 
   // index iterator
   auto Begin() -> INDEXITERATOR_TYPE;
-  auto Begin(const KeyType &key) -> INDEXITERATOR_TYPE;
+  auto Begin(const KeyType &key, Transaction *transaction = nullptr) -> INDEXITERATOR_TYPE;
   auto End() -> INDEXITERATOR_TYPE;
 
   // print the B+ tree
@@ -97,7 +99,7 @@ class BPlusTree {
   KeyComparator comparator_;
   int leaf_max_size_;
   int internal_max_size_;
-  ReadWriterLatch root_page_id_latch;
+  ReaderWriterLatch root_page_id_latch;
 };
 
 }  // namespace bustub

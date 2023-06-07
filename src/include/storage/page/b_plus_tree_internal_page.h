@@ -40,7 +40,7 @@ class BPlusTreeInternalPage : public BPlusTreePage {
 
   auto KeyAt(int index) const -> KeyType;
   void Insert(const KeyType &key, const ValueType &value, const KeyComparator &comparator);
-  void Remove(const KeyType &key, const KeyComparator &comparator);
+  auto Remove(const KeyType &key, const KeyComparator &comparator) -> bool;
   void SetKeyAt(int index, const KeyType &key);
   void SetValueAt(int index, const ValueType &value);
   void TotalToLeft();
