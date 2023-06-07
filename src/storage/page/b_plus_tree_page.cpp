@@ -34,17 +34,17 @@ void BPlusTreePage::DecreaseSize(int amount) { size_ -= amount; }
  * Helper methods to get/set max size (capacity) of the page
  */
 auto BPlusTreePage::GetMaxSize() const -> int { return max_size_; }
-void BPlusTreePage::SetMaxSize(int size) { max_size_ = size;}
+void BPlusTreePage::SetMaxSize(int size) { max_size_ = size; }
 
 /*
  * Helper method to get min page size
  * Generally, min page size == max page size / 2
  */
 auto BPlusTreePage::GetMinSize() const -> int {
-    if (IsLeafPage()) {
-        return max_size_ / 2;
-    }
-    return (max_size_ + 1) / 2;
+  if (IsLeafPage()) {
+    return max_size_ / 2;
+  }
+  return (max_size_ + 1) / 2;
 }
 
 /*
@@ -58,7 +58,6 @@ void BPlusTreePage::SetParentPageId(page_id_t parent_page_id) { parent_page_id_ 
  */
 auto BPlusTreePage::GetPageId() const -> page_id_t { return page_id_; }
 void BPlusTreePage::SetPageId(page_id_t page_id) { page_id_ = page_id; }
-
 
 /*
  * Helper methods to set lsn

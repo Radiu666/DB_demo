@@ -28,9 +28,9 @@ auto IndexScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
     return false;
   }
   *rid = (*iter_).second;
-  table_info_->table_->GetTuple(*rid, tuple, this->exec_ctx_->GetTransaction());
+  auto result = table_info_->table_->GetTuple(*rid, tuple, this->exec_ctx_->GetTransaction());
   ++iter_;
-  return true;
+  return result;
 }
 
 }  // namespace bustub

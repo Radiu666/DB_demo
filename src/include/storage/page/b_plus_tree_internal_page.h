@@ -46,7 +46,7 @@ class BPlusTreeInternalPage : public BPlusTreePage {
   void TotalToLeft();
   void TotalToRight();
   auto ValueAt(int index) const -> ValueType;
-  int FindValueIndex(const ValueType &value);
+  auto FindValueIndex(const ValueType &value) const -> int;
   void MoveAll(BPlusTreeInternalPage *new_page, int idx);
 
  private:

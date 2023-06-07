@@ -13,8 +13,8 @@
 #include "buffer/buffer_pool_manager_instance.h"
 
 #include "common/exception.h"
-#include "common/macros.h"
 #include "common/logger.h"
+#include "common/macros.h"
 
 namespace bustub {
 
@@ -54,7 +54,7 @@ auto BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) -> Page * {
   }
   if (!is_page_available) {
     throw std::logic_error("no available page!");
-//    return nullptr;
+    //    return nullptr;
   }
   *page_id = AllocatePage();
   frame_id_t frame_id;
@@ -76,7 +76,7 @@ auto BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) -> Page * {
   pages_[frame_id].pin_count_ = 1;
   replacer_->RecordAccess(frame_id);
   replacer_->SetEvictable(frame_id, false);
-//  LOG_DEBUG("New page id: %d, pin count is %d", *page_id, pages_[frame_id].pin_count_);
+  //  LOG_DEBUG("New page id: %d, pin count is %d", *page_id, pages_[frame_id].pin_count_);
   return &pages_[frame_id];
 }
 
@@ -87,7 +87,7 @@ auto BufferPoolManagerInstance::FetchPgImp(page_id_t page_id) -> Page * {
     ++pages_[frame_id].pin_count_;
     replacer_->RecordAccess(frame_id);
     replacer_->SetEvictable(frame_id, false);
-//    LOG_DEBUG("Fetch page id: %d, pin count is %d", page_id, pages_[frame_id].pin_count_);
+    //    LOG_DEBUG("Fetch page id: %d, pin count is %d", page_id, pages_[frame_id].pin_count_);
     return &pages_[frame_id];
   }
   bool is_page_available = false;
@@ -120,7 +120,7 @@ auto BufferPoolManagerInstance::FetchPgImp(page_id_t page_id) -> Page * {
   disk_manager_->ReadPage(page_id, pages_[frame_id].data_);
   replacer_->RecordAccess(frame_id);
   replacer_->SetEvictable(frame_id, false);
-//  LOG_DEBUG("Fetch RE page id: %d, pin count is %d", page_id, pages_[frame_id].pin_count_);
+  //  LOG_DEBUG("Fetch RE page id: %d, pin count is %d", page_id, pages_[frame_id].pin_count_);
   return &pages_[frame_id];
 }
 
@@ -142,7 +142,7 @@ auto BufferPoolManagerInstance::UnpinPgImp(page_id_t page_id, bool is_dirty) -> 
   if (pages_[frame_id].GetPinCount() == 0) {
     replacer_->SetEvictable(frame_id, true);
   }
-//  LOG_DEBUG("Unpin page id: %d, pin count is %d", page_id, pages_[frame_id].pin_count_);
+  //  LOG_DEBUG("Unpin page id: %d, pin count is %d", page_id, pages_[frame_id].pin_count_);
   return true;
 }
 
@@ -184,7 +184,7 @@ auto BufferPoolManagerInstance::DeletePgImp(page_id_t page_id) -> bool {
   pages_[frame_id].page_id_ = INVALID_PAGE_ID;
   pages_[frame_id].pin_count_ = 0;
   DeallocatePage(page_id);
-//  LOG_DEBUG("Delete page id: %d, pin count is %d", page_id, pages_[frame_id].pin_count_);
+  //  LOG_DEBUG("Delete page id: %d, pin count is %d", page_id, pages_[frame_id].pin_count_);
   return true;
 }
 
