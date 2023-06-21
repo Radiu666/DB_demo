@@ -746,6 +746,9 @@ auto BPLUSTREE_TYPE::Begin(const KeyType &key, Transaction *transaction) -> INDE
  */
 INDEX_TEMPLATE_ARGUMENTS
 auto BPLUSTREE_TYPE::End() -> INDEXITERATOR_TYPE {
+  if (root_page_id_ == INVALID_PAGE_ID) {
+    return INDEXITERATOR_TYPE(nullptr, nullptr);
+  }
   root_page_id_latch_.RLock();
   page_id_t next_page_id = root_page_id_;
   Page *pre_page = nullptr;

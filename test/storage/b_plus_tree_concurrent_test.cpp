@@ -266,7 +266,7 @@ TEST(BPlusTreeConcurrentTest, DeleteTest2) {
   LOG_DEBUG("REMOVE BEGIN!!!!!!!!!!");
 
   std::vector<int64_t> remove_keys = {1, 4, 3, 2, 5, 6};
-//  std::vector<int64_t> remove_keys = {4};
+  //  std::vector<int64_t> remove_keys = {4};
   LaunchParallelTest(2, DeleteHelperSplit, &tree, remove_keys, 2);
 
   int64_t start_key = 7;

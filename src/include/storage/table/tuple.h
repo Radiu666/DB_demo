@@ -45,7 +45,7 @@ class Tuple {
   // copy constructor, deep copy
   Tuple(const Tuple &other);
 
-  // assign operator, deep copy
+  // assign operator, deep copys
   auto operator=(const Tuple &other) -> Tuple &;
 
   ~Tuple() {

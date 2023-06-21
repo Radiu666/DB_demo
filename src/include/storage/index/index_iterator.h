@@ -34,7 +34,7 @@ class IndexIterator {
   auto operator++() -> IndexIterator &;
 
   auto operator==(const IndexIterator &itr) const -> bool {
-    return page_->GetPageId() == itr.page_->GetPageId() && idx_ == itr.idx_;
+    return page_ == nullptr || (page_->GetPageId() == itr.page_->GetPageId() && idx_ == itr.idx_);
   }
 
   auto operator!=(const IndexIterator &itr) const -> bool {

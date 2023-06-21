@@ -18,13 +18,13 @@ IndexScanExecutor::IndexScanExecutor(ExecutorContext *exec_ctx, const IndexScanP
       index_info_(this->exec_ctx_->GetCatalog()->GetIndex(plan_->index_oid_)),
       table_info_(this->exec_ctx_->GetCatalog()->GetTable(index_info_->table_name_)),
       tree_(dynamic_cast<BPlusTreeIndexForOneIntegerColumn *>(index_info_->index_.get())),
-      iter_(tree_->GetBeginIterator()){}
+      iter_(tree_->GetBeginIterator()) {}
 
-void IndexScanExecutor::Init() {
-}
+void IndexScanExecutor::Init() {}
 
 auto IndexScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
   if (iter_ == tree_->GetEndIterator()) {
+    //    LOG_DEBUG("Iter_ is End!");
     return false;
   }
   *rid = (*iter_).second;

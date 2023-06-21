@@ -173,5 +173,4 @@ TEST(ExtendibleHashTableTest, GetNumBucketsTest) {
   EXPECT_EQ(8, table->GetNumBuckets());
 }
 
-
 }  // namespace bustub
