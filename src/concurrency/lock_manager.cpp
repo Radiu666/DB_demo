@@ -54,7 +54,7 @@ auto LockManager::LockTable(Transaction *txn, LockMode lock_mode, const table_oi
   lock_request_queue->latch_.lock();
   table_lock_map_latch_.unlock();
   //  LOG_DEBUG("Here!11111");
-  for (auto &request : lock_request_queue->request_queue_) {
+  for (auto request : lock_request_queue->request_queue_) {
     // 判断是否存在与当前id相同的请求，即为锁升级
     if (request->txn_id_ == txn->GetTransactionId()) {
       //      LOG_DEBUG("Here!22222");
@@ -171,7 +171,7 @@ auto LockManager::UnlockTable(Transaction *txn, const table_oid_t &oid) -> bool 
   lock_request_queue->latch_.lock();
   table_lock_map_latch_.unlock();
   // 遍历请求队列，找到对应请求释放
-  for (auto &lock_request : lock_request_queue->request_queue_) {
+  for (auto lock_request : lock_request_queue->request_queue_) {
     if (lock_request->txn_id_ == txn->GetTransactionId() && lock_request->granted_) {
       lock_request_queue->request_queue_.remove(lock_request);
       lock_request_queue->cv_.notify_all();
