@@ -1,6 +1,10 @@
+## I have finish all the labs, temporary public to find a job.
+
+-----------------
 <img src="logo/bustub-whiteborder.svg" alt="BusTub Logo" height="200">
 
 -----------------
+
 
 [![Build Status](https://github.com/cmu-db/bustub/actions/workflows/cmake.yml/badge.svg)](https://github.com/cmu-db/bustub/actions/workflows/cmake.yml)
 
