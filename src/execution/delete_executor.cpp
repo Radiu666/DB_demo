@@ -24,6 +24,15 @@ DeleteExecutor::DeleteExecutor(ExecutorContext *exec_ctx, const DeletePlanNode *
 
 void DeleteExecutor::Init() {
   child_executor_->Init();
+  try {
+    bool is_locked = exec_ctx_->GetLockManager()->LockTable(
+        exec_ctx_->GetTransaction(), LockManager::LockMode::INTENTION_EXCLUSIVE, table_info_->oid_);
+    if (!is_locked) {
+      throw ExecutionException("Delete Executor can not get the Table lock!");
+    }
+  } catch (TransactionAbortException e) {
+    throw ExecutionException("Delete Executor can not get the Table lock!");
+  }
   index_infos_ = this->exec_ctx_->GetCatalog()->GetTableIndexes(table_info_->name_);
 }
 
@@ -35,6 +44,15 @@ auto DeleteExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool {
   RID to_rid{};
   int count = 0;
   while (child_executor_->Next(&to_delete_tuple, &to_rid)) {
+    try {
+      bool is_locked = exec_ctx_->GetLockManager()->LockRow(
+          exec_ctx_->GetTransaction(), LockManager::LockMode::EXCLUSIVE, table_info_->oid_, to_rid);
+      if (!is_locked) {
+        throw ExecutionException("Delete Executor can not get the Row lock!");
+      }
+    } catch (TransactionAbortException e) {
+      throw ExecutionException("Delete Executor can not get the Row lock!");
+    }
     bool success = table_info_->table_->MarkDelete(to_rid, exec_ctx_->GetTransaction());
     if (success) {
       for (auto info : index_infos_) {

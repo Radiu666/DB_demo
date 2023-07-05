@@ -24,6 +24,15 @@ InsertExecutor::InsertExecutor(ExecutorContext *exec_ctx, const InsertPlanNode *
 
 void InsertExecutor::Init() {
   child_executor_->Init();
+  try {
+    bool is_locked = exec_ctx_->GetLockManager()->LockTable(
+        exec_ctx_->GetTransaction(), LockManager::LockMode::INTENTION_EXCLUSIVE, table_info_->oid_);
+    if (!is_locked) {
+      throw ExecutionException("Insert Executor can not get the Table lock!");
+    }
+  } catch (TransactionAbortException e) {
+    throw ExecutionException("Insert Executor can not get the Table lock!");
+  }
   this->index_infos_ = this->exec_ctx_->GetCatalog()->GetTableIndexes(table_info_->name_);
 }
 
@@ -37,6 +46,15 @@ auto InsertExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool {
   while (child_executor_->Next(&to_insert_tuple, &to_rid)) {
     bool success = table_info_->table_->InsertTuple(to_insert_tuple, &to_rid, exec_ctx_->GetTransaction());
     if (success) {
+      try {
+        bool is_locked = exec_ctx_->GetLockManager()->LockRow(
+            exec_ctx_->GetTransaction(), LockManager::LockMode::EXCLUSIVE, table_info_->oid_, *rid);
+        if (!is_locked) {
+          throw ExecutionException("Delete Executor can not get the Row lock!");
+        }
+      } catch (TransactionAbortException e) {
+        throw ExecutionException("Delete Executor can not get the Row lock!");
+      }
       for (auto info : index_infos_) {
         const auto index_key =
             to_insert_tuple.KeyFromTuple(table_info_->schema_, info->key_schema_, info->index_->GetKeyAttrs());
